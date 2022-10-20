@@ -20,7 +20,7 @@ def main():
     driver.implicitly_wait(4)  # 렌더링 될 때까지 기다린다 4초
     driver.get('https://map.kakao.com/')  # 주소 가져오기
 
-    search("무월 강남점")
+    search("스타벅스")
 
     driver.quit()
     print("finish")
@@ -97,10 +97,10 @@ def get_menu_board(i, driver):
     place_info.append(category)
 
     # 주소
-    address = soup.select('.placeinfo_default > .location_detail > .txt_address')
-    print(address)
-    addrnum = soup.select('div.placeinfo_default > .location_detail > .txt_addrnum')
-    print(addrnum)
+    address = soup.select('.placeinfo_default > .location_detail > .txt_address')   # 도로명 주소
+    addrnum = soup.select('div.placeinfo_default > .location_detail > .txt_addrnum')  # 지번 주소
+    division = parse_address(address, addrnum)
+    place_info.append(division)
 
     driver.close()
     driver.switch_to.window(driver.window_handles[0])  # 검색 탭으로 전환
@@ -112,9 +112,29 @@ def get_kind(kind):
     category = ''
     if len(kind) != 0:
         category = kind[0].text.split(' ')[1]
-    return category
+    return category.split(',')
+
+
+def parse_address(address, addrnum):
+    division = []
+
+    if len(address) != 0:
+        classification = address[0].text.split('\n')
+
+        for idx, addr in enumerate(classification):
+            rm_blank = addr.strip()
+            if idx == 0:
+                rm_blank = rm_blank.split(' ')
+
+                for city in rm_blank:
+                    division.append(city)
+            else:
+                division.append(rm_blank)
+
+    if len(addrnum) != 0:
+        division.append(addrnum[0].text[2:])
+    return division
 
 
 if __name__ == "__main__":
     main()
-    
