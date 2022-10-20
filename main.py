@@ -1,6 +1,8 @@
 import os
 from time import sleep
+
 import coordinate_function as cf
+import image_function as imgf
 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -20,8 +22,8 @@ def main():
 
     driver.implicitly_wait(4)  # 렌더링 될 때까지 기다린다 4초
     driver.get('https://map.kakao.com/')  # 주소 가져오기
-
-    search("스타벅스 안양일번가")
+    # 1 2 4
+    search("무월 강남점")
 
     driver.quit()
     print("finish")
@@ -106,6 +108,29 @@ def get_menu_board(i, driver):
     xy = cf.get_coordinate(i, driver, address)
     place_info.append(xy)
 
+    # 지하철 역
+    subway_list = soup.select('.cont_findway > div.station_wayout > ul > li')
+    if len(subway_list) != 0:
+        subway_data_list = []
+        for idx, subway in enumerate(subway_list):
+            subway_data = []
+            data = subway.text.split('\n')
+
+            for d in data:
+                if d == '' or d == '|':
+                    continue
+                subway_data.append(d)
+            subway_data_list.append(subway_data)
+    place_info.append(subway_data_list)
+
+    # 이미지
+    # image = soup.select('#photoViewer > div.layer_body > div.item_photo > div > ul > li:nth-child(1) > a > img')
+    #
+    # if len(image) != 0:
+    #     print(image[0])
+    # url = image.get_attribute('src')
+    # imgf.save_image(place_info[0], url)
+
     driver.close()
     driver.switch_to.window(driver.window_handles[0])  # 검색 탭으로 전환
 
@@ -124,23 +149,28 @@ def parse_address(address, addrnum):
 
     if len(address) != 0:
         classification = address[0].text.split('\n')
+        url = ''
 
         for idx, addr in enumerate(classification):
             rm_blank = addr.strip()
             if idx == 0:
-                url = rm_blank
+                url += rm_blank
                 rm_blank = rm_blank.split(' ')
 
                 for city in rm_blank:
                     division.append(city)
-            else:
-                division.append(rm_blank)
+                continue
+
+            if idx == 1:
+                url += (' ' + rm_blank)
+
+            division.append(rm_blank)
 
     if len(addrnum) != 0:
         division.append(addrnum[0].text[2:])
-    url += (' ' + division[3])
 
     return url, division
+
 
 
 if __name__ == "__main__":
