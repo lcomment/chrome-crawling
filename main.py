@@ -1,5 +1,6 @@
 import os
 from time import sleep
+import coordinate_function as cf
 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -20,7 +21,7 @@ def main():
     driver.implicitly_wait(4)  # 렌더링 될 때까지 기다린다 4초
     driver.get('https://map.kakao.com/')  # 주소 가져오기
 
-    search("스타벅스")
+    search("스타벅스 안양일번가")
 
     driver.quit()
     print("finish")
@@ -73,7 +74,6 @@ def crawling(place_lists):
     for i, place in enumerate(place_lists):
         menu_info = get_menu_board(i, driver)
         print(menu_info)
-        # print(i, " ", place, " ", menu_info, "\n")
 
 
 def get_menu_board(i, driver):
@@ -99,8 +99,12 @@ def get_menu_board(i, driver):
     # 주소
     address = soup.select('.placeinfo_default > .location_detail > .txt_address')   # 도로명 주소
     addrnum = soup.select('div.placeinfo_default > .location_detail > .txt_addrnum')  # 지번 주소
-    division = parse_address(address, addrnum)
+    address, division = parse_address(address, addrnum)
     place_info.append(division)
+
+    # 경도, 위도
+    xy = cf.get_coordinate(i, driver, address)
+    place_info.append(xy)
 
     driver.close()
     driver.switch_to.window(driver.window_handles[0])  # 검색 탭으로 전환
@@ -124,6 +128,7 @@ def parse_address(address, addrnum):
         for idx, addr in enumerate(classification):
             rm_blank = addr.strip()
             if idx == 0:
+                url = rm_blank
                 rm_blank = rm_blank.split(' ')
 
                 for city in rm_blank:
@@ -133,7 +138,9 @@ def parse_address(address, addrnum):
 
     if len(addrnum) != 0:
         division.append(addrnum[0].text[2:])
-    return division
+    url += (' ' + division[3])
+
+    return url, division
 
 
 if __name__ == "__main__":
