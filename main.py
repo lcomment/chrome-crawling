@@ -83,62 +83,36 @@ def get_menu_board(i, driver):
     driver.switch_to.window(driver.window_handles[-1])  # 상세정보 탭으로 변환
     sleep(5)
 
-    menu_info = []
+    place_info = []
     html = driver.page_source
     soup = BeautifulSoup(html, 'html.parser')
 
+    # 이름
     name_include_tag = soup.select('.inner_place > h2.tit_location')
-    print(name_include_tag)
-    # 태그 제거 → 이후 라이브러리로 변경 해야 함
-    name = ''
-    flag = False
-    if len(name_include_tag) != 0:
-        for c in str(name_include_tag[0]):
-            if c == '>':
-                flag = True
-                continue
-            if flag and c == '<':
-                break
-            if flag:
-                name += c
+    place_info.append(name_include_tag[0].text)
 
-            # print(c, ' ', name)
+    # 종류
+    kind = soup.select('.inner_place > .location_evaluation > .txt_location')
+    category = get_kind(kind)
+    place_info.append(category)
 
-    menu_info.append(name)
+    # 주소
+    address = soup.select('.placeinfo_default > .location_detail > .txt_address')
+    print(address)
+    addrnum = soup.select('div.placeinfo_default > .location_detail > .txt_addrnum')
+    print(addrnum)
 
+    driver.close()
+    driver.switch_to.window(driver.window_handles[0])  # 검색 탭으로 전환
 
-
-    # 메뉴의 3가지 타입
-    # menuonlyType = soup.select('.cont_menu > .list_menu > .menuonly_type')
-    # nophotoType = soup.select('.cont_menu > .list_menu > .nophoto_type')
-    # photoType = soup.select('.cont_menu > .list_menu > .photo_type')
-    #
-    # if len(menuonlyType) != 0:
-    #     for menu in menuonlyType:
-    #         menu_info.append(get_menu_info(menu))
-    # if len(nophotoType) != 0:
-    #     for menu in nophotoType:
-    #         menu_info.append(get_menu_info(menu))
-    # if len(photoType) != 0:
-    #     for menu in photoType:
-    #         menu_info.append(get_menu_info(menu))
-    #
-    # driver.close()
-    # driver.switch_to.window(driver.window_handles[0])  # 검색 탭으로 전환
-
-    return menu_info
+    return place_info
 
 
-def get_menu_info(menu):
-    menuName = menu.select('.info_menu > .loss_word')[0].text
-    menuPrices = menu.select('.info_menu > .price_menu')
-    menuPrice = ''
-
-    if len(menuPrices) != 0:
-
-        menuPrice = menuPrices[0].text.split(' ')[1]
-
-    return [menuName, menuPrice]
+def get_kind(kind):
+    category = ''
+    if len(kind) != 0:
+        category = kind[0].text.split(' ')[1]
+    return category
 
 
 if __name__ == "__main__":
