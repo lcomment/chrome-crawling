@@ -23,7 +23,7 @@ def main():
     driver.implicitly_wait(4)  # 렌더링 될 때까지 기다린다 4초
     driver.get('https://map.kakao.com/')  # 주소 가져오기
     # 1 2 4
-    search("무월 강남점")
+    search("스타벅스 안양일번가")
 
     driver.quit()
     print("finish")
@@ -124,12 +124,12 @@ def get_menu_board(i, driver):
     place_info.append(subway_data_list)
 
     # 이미지
-    # image = soup.select('#photoViewer > div.layer_body > div.item_photo > div > ul > li:nth-child(1) > a > img')
-    #
-    # if len(image) != 0:
-    #     print(image[0])
-    # url = image.get_attribute('src')
-    # imgf.save_image(place_info[0], url)
+    # photoViewer > div.layer_body > div.item_photo > div > ul > li:nth-child(1)
+    image = driver.find_elements(By.CSS_SELECTOR, '.img_thumb')
+
+    for idx, img in enumerate(image):
+        url = img.get_attribute("src")
+        imgf.save_image(place_info[0], url, idx)
 
     driver.close()
     driver.switch_to.window(driver.window_handles[0])  # 검색 탭으로 전환
@@ -170,7 +170,6 @@ def parse_address(address, addrnum):
         division.append(addrnum[0].text[2:])
 
     return url, division
-
 
 
 if __name__ == "__main__":
